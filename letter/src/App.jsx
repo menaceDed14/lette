@@ -33,13 +33,13 @@ import letter26 from '/img/LETTER26.jpg';
 function App() {
   const [isLetterOpen, setIsLetterOpen] = useState(false);
   const [clickedButton, setClickedButton] = useState(false);
-  const [showHiddenMessage, setShowHiddenMessage] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
   const [currentMessage, setCurrentMessage] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
   const [heartCount, setHeartCount] = useState(0);
   const [showFirstDate, setShowFirstDate] = useState(false);
   const [currentStory, setCurrentStory] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const loveMessages = [
     "Every moment with you is a gift 🎁",
@@ -131,10 +131,6 @@ function App() {
     setCurrentMessage((prev) => (prev + 1) % loveMessages.length);
   };
 
-  const handleHiddenMessageReveal = () => {
-    setShowHiddenMessage(!showHiddenMessage);
-  };
-
   const handleImageClick = (index) => {
     setZoomedImage(zoomedImage === index ? null : index);
   };
@@ -224,34 +220,19 @@ function App() {
 
   const renderSideImages = (start, end) => (
     <div className="images-column">
-      <div className="top-images">
-        {letterImages.slice(start, start + Math.ceil((end - start) / 2)).map((img, index) => (
-          <img
-            key={start + index}
-            src={img}
-            alt={`Memory ${start + index + 1}`}
-            onClick={() => handleImageClick(start + index)}
-            className={`side-image ${zoomedImage === (start + index) ? 'zoomed' : ''}`}
-            style={{
-              animationDelay: `${(index * 0.2)}s`
-            }}
-          />
-        ))}
-      </div>
-      <div className="bottom-images">
-        {letterImages.slice(start + Math.ceil((end - start) / 2), end).map((img, index) => (
-          <img
-            key={start + Math.ceil((end - start) / 2) + index}
-            src={img}
-            alt={`Memory ${start + Math.ceil((end - start) / 2) + index + 1}`}
-            onClick={() => handleImageClick(start + Math.ceil((end - start) / 2) + index)}
-            className={`side-image ${zoomedImage === (start + Math.ceil((end - start) / 2) + index) ? 'zoomed' : ''}`}
-            style={{
-              animationDelay: `${((index + Math.ceil((end - start) / 2)) * 0.2)}s`
-            }}
-          />
-        ))}
-      </div>
+      {letterImages.slice(start, end).map((img, index) => (
+        <img
+          key={start + index}
+          src={img}
+          alt={`Memory ${start + index + 1}`}
+          onClick={() => handleImageClick(start + index)}
+          className="side-image"
+          loading="lazy"
+          style={{
+            animationDelay: `${(index * 0.2)}s`
+          }}
+        />
+      ))}
     </div>
   );
 
@@ -270,7 +251,25 @@ function App() {
 
   return (
     <>
-      {zoomedImage && <div className="modal-overlay" onClick={() => setZoomedImage(null)} />}
+      {zoomedImage !== null && (
+        <div 
+          className={`modal-overlay ${zoomedImage !== null ? 'visible' : ''}`}
+          onClick={() => {
+            setImageLoaded(false);
+            setZoomedImage(null);
+          }}
+        >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={letterImages[zoomedImage]}
+              alt={`Memory ${zoomedImage + 1}`}
+              loading="lazy"
+              className={imageLoaded ? 'loaded' : ''}
+              onLoad={() => setImageLoaded(true)}
+            />
+          </div>
+        </div>
+      )}
       <div className="hearts-container">
         {[...Array(20)].map((_, index) => (
           <div key={index} 
@@ -333,23 +332,6 @@ function App() {
               <div className="signature">
                 <p>Forever Yours,</p>
                 <p className="signature-name">♥️ Me</p>
-              </div>
-            </div>
-
-            <div className="reveal-section">
-              <button
-                className="interaction-button reveal-button"
-                onClick={handleHiddenMessageReveal}
-              >
-                <span className="button-emoji">
-                  {showHiddenMessage ? '💝' : '🔐'}
-                </span>
-                {showHiddenMessage ? "Hide My Heart" : "Open My Heart"}
-              </button>
-
-              <div className={`hidden-message ${!showHiddenMessage ? "hidden" : ""}`}>
-                <p>You are my favorite person in the world 🌎. Always will be. 🥹❤️</p>
-                <p>… and yes, I'll love you forever. 💍</p>
               </div>
             </div>
           </div>
